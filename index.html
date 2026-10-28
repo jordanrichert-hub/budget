@@ -222,3 +222,256 @@ const SAVINGS = [{"fund": "Emergencies", "balance": "40000.00", "as_of": "2026-1
 
 const num = (v) => Number(v) || 0;
 const r2 = (v) => Math.round(v * 100) / 100;
+const sum = (a, f) => r2(a.reduce((s, x) => s + f(x), 0));
+const money = (v) => (v < 0 ? '−' : '') + '$' + Math.abs(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const dateFmt = (s) => { const [, m, d] = s.split('-').map(Number); return MON[m - 1] + ' ' + d; };
+const pct = (v) => Math.round(v * 100) + '%';
+const $ = (id) => document.getElementById(id);
+
+// ---- calculations (same rules as the original layout) ----
+const spentIn = (cat) => sum(TXNS.filter((t) => t.category === cat), (t) => num(t.amount));
+const asOf = TXNS.map((t) => t.date).sort().slice(-1)[0];
+const [Y, M, D] = asOf.split('-').map(Number);
+const dim = new Date(Date.UTC(Y, M, 0)).getUTCDate();
+const pace = D / dim;
+const daysLeft = dim - D + 1;
+
+const daily = BUDGET.filter((b) => b.group === 'Daily').map((b) => {
+  const bud = num(b.monthly_budget), spent = spentIn(b.category);
+  const status = spent > bud ? 'Over' : spent > bud * pace * 1.1 ? 'Ahead of pace' : 'On track';
+  return { category: b.category, budget: bud, spent, remaining: r2(bud - spent), pct_used: bud ? spent / bud : 0, status };
+});
+const fixed = BUDGET.filter((b) => b.group === 'Fixed').map((b) => {
+  const bud = num(b.monthly_budget), paid = spentIn(b.category);
+  const status = paid === 0 ? 'Not yet' : paid > bud + 0.005 ? 'Over' : 'Paid';
+  return { category: b.category, budget: bud, paid, status };
+});
+// Sinking funds are listed in their own table. Balances are the envelope balances from the Envelope app on Oct 22.
+const SINKING = [
+  { category: 'Tithe', balance: 5512.00 },
+  { category: 'Vacation', balance: 553.28 },
+  { category: 'Christmas', balance: 400.00 },
+  { category: 'May', balance: 200.00 },
+  { category: 'Haircut', balance: 158.96 },
+  { category: 'Car', balance: 1000.00 },
+  { category: 'Car Registration', balance: 179.09 },
+  { category: 'Oil Change', balance: 249.23 },
+];
+const sinkNames = SINKING.map((s) => s.category);
+
+const dBudget = sum(daily, (r) => r.budget), dSpent = sum(daily, (r) => r.spent);
+const dRemaining = r2(dBudget - dSpent);
+const unassignedSpent = spentIn('Unassigned');
+const overCount = daily.filter((r) => r.status === 'Over').length;
+const income = sum(BUDGET.filter((b) => b.group === 'Income'), (b) => num(b.monthly_budget));
+const planned = sum(BUDGET.filter((b) => b.group === 'Unassigned'), (b) => num(b.monthly_budget));
+const projected = r2(income - sum(daily, (r) => Math.max(r.budget, r.spent)) - sum(fixed, (r) => sinkNames.includes(r.category) ? Math.max(r.budget, r.paid) : r.paid > 0 ? r.paid : r.budget) - unassignedSpent);
+const contributions = sum(fixed.filter((r) => ['Roth IRA', 'HSA', '529s', 'Protected Savings'].includes(r.category)), (r) => r.budget);
+const expenses = sum(TXNS, (t) => num(t.amount));
+const savTotal = sum(SAVINGS, (r) => num(r.balance));
+
+// ---- summary ----
+$('takeaway').textContent = (dRemaining < 0
+  ? `Day-to-day spending is ${money(-dRemaining)} over budget with ${daysLeft} days left`
+  : `${money(dRemaining)} of day-to-day money left for ${daysLeft} days, about ${money(Math.max(dRemaining, 0) / daysLeft)} a day`)
+  + (overCount ? `; ${overCount} ${overCount === 1 ? 'category is' : 'categories are'} already over.` : '.');
+$('p-projected').textContent = money(projected);
+$('p-planned').textContent = money(planned);
+const diff = r2(projected - planned);
+$('p-diff').textContent = diff < 0 ? money(-diff) + ' below plan' : money(diff) + ' above plan';
+$('p-diff').className = diff < 0 ? 'rb-bad' : 'rb-ok';
+$('p-contrib').textContent = money(contributions);
+const billsCommitted = sum(fixed.filter((r) => !sinkNames.includes(r.category)), (r) => r.paid > 0 ? r.paid : r.budget);
+const fundsSetAside = sum(fixed.filter((r) => sinkNames.includes(r.category)), (r) => r.budget);
+const allocNames = ['Roth IRA', 'HSA', '529s', 'Protected Savings'];
+const allocations = r2(fundsSetAside + sum(fixed.filter((r) => allocNames.includes(r.category)), (r) => r.budget));
+const billsOnly = fixed.filter((r) => !sinkNames.includes(r.category) && !allocNames.includes(r.category));
+const budgetedSpend = r2(sum(daily, (r) => Math.min(r.spent, r.budget)) + sum(billsOnly, (r) => r.paid > 0 ? Math.min(r.paid, r.budget) : r.budget));
+const excessSpend = r2(sum(daily, (r) => Math.max(r.spent - r.budget, 0)) + sum(billsOnly, (r) => Math.max(r.paid - r.budget, 0)) + unassignedSpent);
+const committed = r2(budgetedSpend + excessSpend + allocations);
+const spItems = [
+  { label: 'Budgeted spending', amt: budgetedSpend, color: 'var(--accent)', note: 'Day-to-day and bills, up to what was budgeted' },
+  { label: 'Excess spending', amt: excessSpend, color: 'var(--bar-bad)', bad: true, note: 'Day-to-day over budget, plus card spending outside any category' },
+  { label: 'Planned allocations', amt: allocations, color: 'var(--c5)', note: 'Sinking funds and savings contributions, whether spent out of the fund or not' },
+];
+$('sp-total').textContent = money(committed);
+$('sp-income').textContent = money(income);
+$('sp-left').textContent = money(r2(income - committed));
+for (const s of spItems) {
+  const seg = el('div'); seg.style.flex = String(s.amt); seg.style.background = s.color; seg.title = s.label + ': ' + money(s.amt);
+  $('sp-bar').appendChild(seg);
+  const col = el('div', 'rb-spent-col');
+  const lab = el('div', 'rb-label'); const sw = el('span', 'rb-sw'); sw.style.background = s.color;
+  lab.append(sw, document.createTextNode(s.label));
+  col.append(lab, el('div', 'rb-big' + (s.bad ? ' rb-bad' : ''), money(s.amt)), el('div', 'rb-sub', pct(committed ? s.amt / committed : 0) + ' of the total. ' + s.note));
+  $('sp-cols').appendChild(col);
+}
+$('m-net').textContent = money(r2(income - committed));
+$('m-income').textContent = money(income);
+$('m-exp').textContent = money(committed);
+$('t-remaining').textContent = money(dRemaining);
+$('t-remaining').className = 'rb-big ' + (dRemaining < 0 ? 'rb-bad' : 'rb-ok');
+$('t-budget').textContent = money(dBudget);
+$('t-days').textContent = String(daysLeft);
+$('t-asof').textContent = dateFmt(asOf);
+$('t-perday').textContent = money(r2(Math.max(dRemaining, 0) / daysLeft));
+$('t-unassigned').textContent = money(unassignedSpent);
+$('pace-legend').textContent = `Where spending should be today (${pct(pace)} of the month)`;
+$('s-asof').textContent = dateFmt(SAVINGS.map((r) => r.as_of).sort().slice(-1)[0]);
+$('s-total').textContent = money(savTotal);
+
+// ---- state ----
+let cat = null;
+const search = $('search'), picked = $('picked');
+function pick(c) { cat = cat === c ? null : c; drawRows(); drawTx(); $('txns').scrollIntoView({ block: 'nearest' }); }
+$('tile-unassigned').addEventListener('click', () => pick('Unassigned'));
+$('tile-unassigned').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick('Unassigned'); } });
+picked.addEventListener('click', () => { cat = null; drawRows(); drawTx(); });
+search.addEventListener('input', drawTx);
+
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+function drawRows() {
+  const box = $('rows'); box.replaceChildren();
+  const cap = 2;
+  for (const r of daily) {
+    const row = el('button', 'rb-row' + (cat === r.category ? ' rb-sel' : ''));
+    row.type = 'button';
+    row.addEventListener('click', () => pick(r.category));
+    const name = el('div');
+    name.append(el('div', 'rb-name', r.category));
+    name.append(el('div', 'rb-stat ' + (r.status === 'Over' ? 'rb-bad' : r.status === 'Ahead of pace' ? 'rb-warn' : 'rb-ok'),
+      r.status + (r.pct_used > cap ? ` · ${pct(r.pct_used)} used` : '')));
+    const track = el('div', 'rb-track');
+    const fill = el('div', 'rb-fill');
+    fill.style.width = (Math.min(r.pct_used, cap) / cap * 100) + '%';
+    fill.style.background = r.status === 'Over' ? 'var(--bar-bad)' : 'var(--bar-ok)';
+    const full = el('div', 'rb-full'); full.style.left = (100 / cap) + '%';
+    const pc = el('div', 'rb-pace'); pc.style.left = (pace / cap * 100) + '%';
+    track.append(fill, full, pc);
+    const amt = el('div', 'rb-amt');
+    amt.append(el('b', null, money(r.spent)));
+    amt.append(el('div', r.remaining < 0 ? 'rb-bad' : '', `of ${money(r.budget)} · ` + (r.remaining < 0 ? `${money(-r.remaining)} over` : `${money(r.remaining)} left`)));
+    row.append(name, track, amt);
+    box.appendChild(row);
+  }
+  // Card spending outside any category has no planned amount, so it gets no bar or status.
+  const u = el('button', 'rb-row' + (cat === 'Unassigned' ? ' rb-sel' : ''));
+  u.type = 'button';
+  u.addEventListener('click', () => pick('Unassigned'));
+  const un = el('div');
+  un.append(el('div', 'rb-name', 'Unassigned'), el('div', 'rb-stat rb-label', 'Card spending, no budget'));
+  const ua = el('div', 'rb-amt');
+  ua.append(el('b', null, money(unassignedSpent)), el('div', 'rb-label', 'not in a category'));
+  u.append(un, el('div', 'rb-label rb-note-mid', 'No planned amount'), ua);
+  box.appendChild(u);
+}
+
+function drawTx() {
+  picked.hidden = !cat;
+  picked.textContent = cat ? `${cat} ×` : '';
+  const q = search.value.trim().toLowerCase();
+  const list = TXNS.filter((r) => !cat || r.category === cat)
+    .filter((r) => !q || (r.merchant + ' ' + r.category + ' ' + r.account).toLowerCase().includes(q))
+    .slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+  const body = $('tx'); body.replaceChildren();
+  for (const r of list) {
+    const tr = document.createElement('tr');
+    [dateFmt(r.date) + (r.status === 'Pending' ? ' · pending' : ''), r.merchant, r.category, r.account, money(num(r.amount))].forEach((c, i) => {
+      const td = el('td', i === 3 ? 'rb-hide-narrow' : i === 4 ? 'rb-num' : '', c);
+      tr.appendChild(td);
+    });
+    body.appendChild(tr);
+  }
+  if (!list.length) { const tr = document.createElement('tr'); const td = el('td', null, 'No transactions match.'); td.colSpan = 5; tr.appendChild(td); body.appendChild(tr); }
+}
+
+function drawSinking() {
+  $('sk-asof').textContent = dateFmt(SAVINGS.map((r) => r.as_of).sort().slice(-1)[0]);
+  const body = $('sk');
+  for (const s of SINKING) {
+    const f = fixed.find((r) => r.category === s.category);
+    const tr = document.createElement('tr');
+    tr.append(el('td', null, s.category), el('td', 'rb-num', money(f.budget)));
+    const sp = el('td', 'rb-num' + (f.paid > f.budget + 0.005 ? ' rb-bad' : ''), money(f.paid));
+    tr.append(sp);
+    tr.append(el('td', 'rb-num', money(s.balance)));
+    body.appendChild(tr);
+  }
+}
+
+function drawFixed() {
+  const body = $('fx');
+  for (const r of fixed.filter((x) => !sinkNames.includes(x.category))) {
+    const tr = document.createElement('tr');
+    tr.append(el('td', null, r.category), el('td', 'rb-num', money(r.budget)), el('td', 'rb-num', money(r.paid)),
+      el('td', r.status === 'Over' ? 'rb-bad' : r.status === 'Paid' ? 'rb-ok' : '', r.status));
+    body.appendChild(tr);
+  }
+}
+
+function drawSavings() {
+  const box = $('sav');
+  for (const r of SAVINGS) {
+    const bal = num(r.balance);
+    const item = el('div', 'rb-sav-item');
+    const tr = el('div', 'rb-track'); const fl = el('div', 'rb-fill'); fl.style.width = (savTotal ? bal / savTotal * 100 : 0) + '%'; tr.appendChild(fl);
+    item.append(el('div', 'rb-label', r.fund), el('div', 'rb-big', money(bal)), tr, el('div', 'rb-label', pct(savTotal ? bal / savTotal : 0) + ' of savings'));
+    item.lastChild.style.marginTop = '6px';
+    box.appendChild(item);
+  }
+}
+
+const SAVE_NAMES = ['Roth IRA', 'HSA', '529s', 'Protected Savings'];
+const PLAN_GROUPS = [
+  { name: 'Home and bills', color: '--c1', note: 'Mortgage, utilities, insurance, phone, internet, preschool and subscriptions',
+    test: (b) => b.group === 'Fixed' && (b.section === 'Bills (Envelope)' || ['Mortgage', 'Life insurance / LTD', 'Amazon Music'].includes(b.category)) },
+  { name: 'Day-to-day spending', color: '--c2', note: 'Groceries, eating out, gas, Amazon, fun money and other everyday purchases',
+    test: (b) => b.group === 'Daily' },
+  { name: 'Giving', color: '--c3', note: 'Tithe and missions', test: (b) => b.section === 'Giving' },
+  { name: 'Saving up for planned costs', color: '--c4', note: 'Vacation, Christmas, car costs, haircuts and annual memberships',
+    test: (b) => b.section === 'Sinking Funds (Envelope)' && !SAVE_NAMES.includes(b.category) },
+  { name: 'Retirement and long-term savings', color: '--c5', note: 'Roth IRA, HSA, college (529s) and Protected Savings',
+    test: (b) => SAVE_NAMES.includes(b.category) },
+  { name: 'Unassigned', color: '--c6', note: 'Income not yet given a specific job. Extra spending comes out of this.',
+    test: () => false, remainder: true },
+];
+
+function drawPlan() {
+  const groups = PLAN_GROUPS.map((g) => ({ ...g, amount: sum(BUDGET.filter(g.test), (b) => num(b.monthly_budget)) }));
+  const planned = sum(groups, (g) => g.amount);
+  const left = r2(income - planned);
+  groups.find((g) => g.remainder).amount = left;
+  const incBox = $('income-rows');
+  for (const b of BUDGET.filter((x) => x.group === 'Income')) {
+    const m = b.category.match(/\((.*)\)/);
+    const row = el('div', 'rb-inc-row');
+    const txt = el('div');
+    txt.append(el('div', 'rb-name', b.category.split(' ')[0] + "'s income"), el('div', 'rb-label', 'Take-home pay' + (m ? ': ' + m[1] : '')));
+    row.append(txt, el('div', 'rb-inc-amt', money(num(b.monthly_budget))));
+    incBox.appendChild(row);
+  }
+  const tot = el('div', 'rb-inc-row rb-inc-total');
+  tot.append(el('div', null, 'Total income'), el('div', null, money(income)));
+  incBox.appendChild(tot);
+  const bar = $('plan-bar'), rows = $('plan-rows');
+  for (const g of groups) {
+    const seg = el('div'); seg.style.flex = String(g.amount); seg.style.background = 'var(' + g.color + ')';
+    seg.title = g.name + ': ' + money(g.amount);
+    bar.appendChild(seg);
+    const row = el('div', 'rb-plan-row');
+    const sw = el('div', 'rb-sw'); sw.style.background = 'var(' + g.color + ')';
+    const txt = el('div'); txt.append(el('div', 'rb-name', g.name), el('div', 'rb-label', g.note));
+    row.append(sw, txt, el('div', 'rb-plan-amt', money(g.amount)), el('div', 'rb-plan-pct', pct(income ? g.amount / income : 0)));
+    rows.appendChild(row);
+  }
+  $('plan-income').textContent = money(income);
+  $('plan-total').textContent = money(planned);
+  $('plan-left').textContent = money(left);
+}
+
+drawPlan(); drawRows(); drawTx(); drawFixed(); drawSinking(); drawSavings();
+</script>
+
+</body></html>
