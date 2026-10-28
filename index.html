@@ -3,7 +3,6 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
 <style>
-/* Layout: one column of summary cards, then envelope bars, then transactions beside bills, savings last. */
 :root {
   --bg: #f3f5f2; --panel: #ffffff; --fg: #1c2421; --muted: #5d6b65; --line: #dde3df;
   --track: #e7ece8; --axis: #8a9791; --pace: #2b3a34;
@@ -155,7 +154,7 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-s
   </section>
 
   <section class="rb-tiles">
-    <div class="rb-card"><div class="rb-label">Day-to-day left this month</div><div class="rb-big" id="t-remaining">—</div><div class="rb-sub">of <span id="t-budget">—</span> across 8 categories</div></div>
+    <div class="rb-card"><div class="rb-label">Day-to-day left this month</div><div class="rb-big" id="t-remaining">—</div><div class="rb-sub">of <span id="t-budget">—</span> across Day-to-Day</div></div>
     <div class="rb-card"><div class="rb-label">Days left in month</div><div class="rb-big" id="t-days">—</div><div class="rb-sub">Data through <span id="t-asof">—</span></div></div>
     <div class="rb-card"><div class="rb-label">Safe to spend per day</div><div class="rb-big" id="t-perday">—</div><div class="rb-sub">Day-to-day left ÷ days left</div></div>
     <div class="rb-card rb-tile rb-click" id="tile-unassigned" role="button" tabindex="0" title="Show these transactions">
@@ -229,7 +228,6 @@ const dateFmt = (s) => { const [, m, d] = s.split('-').map(Number); return MON[m
 const pct = (v) => Math.round(v * 100) + '%';
 const $ = (id) => document.getElementById(id);
 
-// ---- calculations (same rules as the original layout) ----
 const spentIn = (cat) => sum(TXNS.filter((t) => t.category === cat), (t) => num(t.amount));
 const asOf = TXNS.map((t) => t.date).sort().slice(-1)[0];
 const [Y, M, D] = asOf.split('-').map(Number);
@@ -237,17 +235,30 @@ const dim = new Date(Date.UTC(Y, M, 0)).getUTCDate();
 const pace = D / dim;
 const daysLeft = dim - D + 1;
 
-const daily = BUDGET.filter((b) => b.group === 'Daily').map((b) => {
-  const bud = num(b.monthly_budget), spent = spentIn(b.category);
-  const status = spent > bud ? 'Over' : spent > bud * pace * 1.1 ? 'Ahead of pace' : 'On track';
-  return { category: b.category, budget: bud, spent, remaining: r2(bud - spent), pct_used: bud ? spent / bud : 0, status };
-});
+const DAILY_TARGETS = ['Groceries', 'Eating Out', 'Gas'];
+const originalDaily = BUDGET.filter(b => b.group === 'Daily');
+const otherBudget = sum(originalDaily.filter(b => !DAILY_TARGETS.includes(b.category)), b => num(b.monthly_budget));
+const daily = [
+  ...DAILY_TARGETS.map(catName => {
+    const b = originalDaily.find(x => x.category === catName);
+    const bud = b ? num(b.monthly_budget) : 0;
+    const spent = spentIn(catName);
+    const status = spent > bud ? 'Over' : spent > bud * pace * 1.1 ? 'Ahead of pace' : 'On track';
+    return { category: catName, budget: bud, spent, remaining: r2(bud - spent), pct_used: bud ? spent / bud : 0, status };
+  }),
+  (() => {
+    const otherCats = originalDaily.map(b => b.category).filter(c => !DAILY_TARGETS.includes(c));
+    const spent = sum(TXNS.filter(t => otherCats.includes(t.category)), t => num(t.amount));
+    const status = spent > otherBudget ? 'Over' : spent > otherBudget * pace * 1.1 ? 'Ahead of pace' : 'On track';
+    return { category: 'Other', budget: otherBudget, spent, remaining: r2(otherBudget - spent), pct_used: otherBudget ? spent / otherBudget : 0, status };
+  })()
+];
+
 const fixed = BUDGET.filter((b) => b.group === 'Fixed').map((b) => {
   const bud = num(b.monthly_budget), paid = spentIn(b.category);
   const status = paid === 0 ? 'Not yet' : paid > bud + 0.005 ? 'Over' : 'Paid';
   return { category: b.category, budget: bud, paid, status };
 });
-// Sinking funds are listed in their own table. Balances are the envelope balances from the Envelope app on Oct 22.
 const SINKING = [
   { category: 'Tithe', balance: 5512.00 },
   { category: 'Vacation', balance: 553.28 },
@@ -271,7 +282,6 @@ const contributions = sum(fixed.filter((r) => ['Roth IRA', 'HSA', '529s', 'Prote
 const expenses = sum(TXNS, (t) => num(t.amount));
 const savTotal = sum(SAVINGS, (r) => num(r.balance));
 
-// ---- summary ----
 $('takeaway').textContent = (dRemaining < 0
   ? `Day-to-day spending is ${money(-dRemaining)} over budget with ${daysLeft} days left`
   : `${money(dRemaining)} of day-to-day money left for ${daysLeft} days, about ${money(Math.max(dRemaining, 0) / daysLeft)} a day`)
@@ -282,7 +292,6 @@ const diff = r2(projected - planned);
 $('p-diff').textContent = diff < 0 ? money(-diff) + ' below plan' : money(diff) + ' above plan';
 $('p-diff').className = diff < 0 ? 'rb-bad' : 'rb-ok';
 $('p-contrib').textContent = money(contributions);
-const billsCommitted = sum(fixed.filter((r) => !sinkNames.includes(r.category)), (r) => r.paid > 0 ? r.paid : r.budget);
 const fundsSetAside = sum(fixed.filter((r) => sinkNames.includes(r.category)), (r) => r.budget);
 const allocNames = ['Roth IRA', 'HSA', '529s', 'Protected Savings'];
 const allocations = r2(fundsSetAside + sum(fixed.filter((r) => allocNames.includes(r.category)), (r) => r.budget));
@@ -321,10 +330,16 @@ $('pace-legend').textContent = `Where spending should be today (${pct(pace)} of 
 $('s-asof').textContent = dateFmt(SAVINGS.map((r) => r.as_of).sort().slice(-1)[0]);
 $('s-total').textContent = money(savTotal);
 
-// ---- state ----
 let cat = null;
 const search = $('search'), picked = $('picked');
-function pick(c) { cat = cat === c ? null : c; drawRows(); drawTx(); $('txns').scrollIntoView({ block: 'nearest' }); }
+function pick(c) {
+  if (c === 'Other') {
+    cat = cat === c ? null : c;
+  } else {
+    cat = cat === c ? null : c;
+  }
+  drawRows(); drawTx(); $('txns').scrollIntoView({ block: 'nearest' });
+}
 $('tile-unassigned').addEventListener('click', () => pick('Unassigned'));
 $('tile-unassigned').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick('Unassigned'); } });
 picked.addEventListener('click', () => { cat = null; drawRows(); drawTx(); });
@@ -356,7 +371,6 @@ function drawRows() {
     row.append(name, track, amt);
     box.appendChild(row);
   }
-  // Card spending outside any category has no planned amount, so it gets no bar or status.
   const u = el('button', 'rb-row' + (cat === 'Unassigned' ? ' rb-sel' : ''));
   u.type = 'button';
   u.addEventListener('click', () => pick('Unassigned'));
@@ -372,9 +386,15 @@ function drawTx() {
   picked.hidden = !cat;
   picked.textContent = cat ? `${cat} ×` : '';
   const q = search.value.trim().toLowerCase();
-  const list = TXNS.filter((r) => !cat || r.category === cat)
-    .filter((r) => !q || (r.merchant + ' ' + r.category + ' ' + r.account).toLowerCase().includes(q))
+  const otherCats = originalDaily.map(b => b.category).filter(c => !DAILY_TARGETS.includes(c));
+  
+  const list = TXNS.filter((r) => {
+    if (!cat) return true;
+    if (cat === 'Other') return otherCats.includes(r.category);
+    return r.category === cat;
+  }).filter((r) => !q || (r.merchant + ' ' + r.category + ' ' + r.account).toLowerCase().includes(q))
     .slice().sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
+    
   const body = $('tx'); body.replaceChildren();
   for (const r of list) {
     const tr = document.createElement('tr');
