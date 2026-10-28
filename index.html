@@ -31,6 +31,15 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-s
 .rb { display: flex; flex-direction: column; gap: 20px; max-width: 72rem; margin-inline: auto; }
 .rb-head h1 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; margin: 0; text-wrap: balance; }
 .rb-head p { margin: 6px 0 0; color: var(--muted); font-size: 15px; max-width: 60ch; }
+
+/* Tabs navigation */
+.rb-tabs { display: flex; gap: 8px; border-bottom: 2px solid var(--line); margin-bottom: 4px; }
+.rb-tab { font: inherit; font-size: 15px; font-weight: 600; padding: 10px 20px; background: none; border: none; border-bottom: 3px solid transparent; color: var(--muted); cursor: pointer; margin-bottom: -2px; }
+.rb-tab:hover { color: var(--fg); }
+.rb-tab.rb-tab-active { color: var(--accent); border-bottom-color: var(--accent); }
+.rb-pane { display: none; flex-direction: column; gap: 20px; }
+.rb-pane.rb-pane-active { display: flex; }
+
 .rb-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px; min-width: 0; }
 .rb-card h2 { font-size: 16px; font-weight: 600; margin: 0; }
 .rb-note { color: var(--muted); font-size: 12.5px; margin: 4px 0 16px; }
@@ -42,8 +51,6 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-s
 .rb-sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
 .rb-proj-side { max-width: 26rem; font-size: 14px; }
 .rb-proj-side b { font-weight: 600; font-variant-numeric: tabular-nums; }
-.rb-split { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
-.rb-split > div { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
 .rb-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 12px; }
 .rb-tile.rb-click { cursor: pointer; }
 .rb-tile.rb-click:hover, .rb-tile.rb-click:focus-visible { border-color: var(--accent); outline: none; }
@@ -109,109 +116,120 @@ body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-s
     <p id="takeaway">—</p>
   </header>
 
-  <section class="rb-card">
-    <h2>The whole budget on one page</h2>
-    <p class="rb-note">Every dollar we bring home in a month is given a place. What we have budgeted, plus what is still unassigned, adds up to exactly our income.</p>
-    <div class="rb-sec" style="margin-top: 0">What we bring home</div>
-    <div id="income-rows"></div>
-    <div class="rb-sec">Where it goes</div>
-    <div class="rb-stack" id="plan-bar" aria-hidden="true"></div>
-    <div id="plan-rows"></div>
-    <div class="rb-plan-total"><span>Income <span id="plan-income">—</span></span><span>Budgeted <span id="plan-total">—</span></span><span>Unassigned <span id="plan-left">—</span></span></div>
-  </section>
-
-  <div class="rb-top">
-    <section class="rb-card rb-proj rb-hl">
-      <div>
-        <div class="rb-label">Projected savings for October</div>
-        <div class="rb-big" id="p-projected">—</div>
-        <div class="rb-sub">Plan was <span id="p-planned">—</span> · <span id="p-diff">—</span></div>
-      </div>
-      <div class="rb-proj-side">
-        <div>Plus <b id="p-contrib">—</b> going to Roth IRA, HSA, 529s and Protected Savings</div>
-        <div class="rb-sub">Income minus every budget line, counting any line already over budget at what's been spent and any bill that has posted at the amount posted, minus card spending outside the budget so far.</div>
-      </div>
-    </section>
-    <section class="rb-card rb-proj rb-hl">
-      <div>
-        <div class="rb-label">Left after spending and funds set aside</div>
-        <div class="rb-big" id="m-net">—</div>
-        <div class="rb-sub"><span id="m-income">—</span> income − <span id="m-exp">—</span> spent or set aside</div>
-      </div>
-      <div class="rb-proj-side">
-        <div class="rb-sub">Income minus everything spent or set aside so far. Unspent day-to-day money is not held back, and bills count at the amount posted, or their budget if not posted yet. The breakdown is just below.</div>
-      </div>
-    </section>
+  <div class="rb-tabs">
+    <button class="rb-tab rb-tab-active" data-target="pane-dashboard">Daily Dashboard</button>
+    <button class="rb-tab" data-target="pane-whole-budget">Whole Budget</button>
   </div>
 
-  <section class="rb-card rb-hl" id="spent-panel">
-    <div class="rb-spent-head">
-      <div><div class="rb-label">Spent or set aside this month</div><div class="rb-big" id="sp-total">—</div></div>
-      <div class="rb-sub">out of <span id="sp-income">—</span> income, leaving <span id="sp-left">—</span></div>
+  <!-- TAB 1: DAILY DASHBOARD -->
+  <div class="rb-pane rb-pane-active" id="pane-dashboard">
+    <div class="rb-top">
+      <section class="rb-card rb-proj rb-hl">
+        <div>
+          <div class="rb-label">Projected savings for October</div>
+          <div class="rb-big" id="p-projected">—</div>
+          <div class="rb-sub">Plan was <span id="p-planned">—</span> · <span id="p-diff">—</span></div>
+        </div>
+        <div class="rb-proj-side">
+          <div>Plus <b id="p-contrib">—</b> going to Roth IRA, HSA, 529s and Protected Savings</div>
+          <div class="rb-sub">Income minus every budget line, counting any line already over budget at what's been spent and any bill that has posted at the amount posted, minus card spending outside the budget so far.</div>
+        </div>
+      </section>
+      <section class="rb-card rb-proj rb-hl">
+        <div>
+          <div class="rb-label">Left after spending and funds set aside</div>
+          <div class="rb-big" id="m-net">—</div>
+          <div class="rb-sub"><span id="m-income">—</span> income − <span id="m-exp">—</span> spent or set aside</div>
+        </div>
+        <div class="rb-proj-side">
+          <div class="rb-sub">Income minus everything spent or set aside so far. Unspent day-to-day money is not held back, and bills count at the amount posted, or their budget if not posted yet. The breakdown is just below.</div>
+        </div>
+      </section>
     </div>
-    <div class="rb-stack" id="sp-bar" aria-hidden="true"></div>
-    <div class="rb-spent-cols" id="sp-cols"></div>
-  </section>
 
-  <section class="rb-tiles">
-    <div class="rb-card"><div class="rb-label">Day-to-day left this month</div><div class="rb-big" id="t-remaining">—</div><div class="rb-sub">of <span id="t-budget">—</span> across Day-to-Day</div></div>
-    <div class="rb-card"><div class="rb-label">Days left in month</div><div class="rb-big" id="t-days">—</div><div class="rb-sub">Data through <span id="t-asof">—</span></div></div>
-    <div class="rb-card"><div class="rb-label">Safe to spend per day</div><div class="rb-big" id="t-perday">—</div><div class="rb-sub">Day-to-day left ÷ days left</div></div>
-    <div class="rb-card rb-tile rb-click" id="tile-unassigned" role="button" tabindex="0" title="Show these transactions">
-      <div class="rb-label">Card spending not in a category</div><div class="rb-big" id="t-unassigned">—</div><div class="rb-sub">Counted against Unassigned · tap to see</div>
-    </div>
-  </section>
-
-  <section class="rb-card">
-    <h2>Day-to-day categories</h2>
-    <p class="rb-note">Spent so far vs. monthly budget. Tap a category to see its transactions.</p>
-    <div class="rb-rows" id="rows"></div>
-    <div class="rb-legend"><span class="rb-lg-pace" id="pace-legend">Where spending should be today</span><span class="rb-lg-full">100% of budget</span></div>
-  </section>
-
-  <div class="rb-grid">
-    <section class="rb-card" id="txns">
-      <h2>Transactions</h2>
-      <p class="rb-note">Envelope and all Chase accounts, October 1 to date. Pending items included.</p>
-      <div class="rb-tools">
-        <input type="search" id="search" placeholder="Search merchant or category" aria-label="Search transactions">
-        <button class="rb-chip" id="picked" hidden></button>
+    <section class="rb-card rb-hl" id="spent-panel">
+      <div class="rb-spent-head">
+        <div><div class="rb-label">Spent or set aside this month</div><div class="rb-big" id="sp-total">—</div></div>
+        <div class="rb-sub">out of <span id="sp-income">—</span> income, leaving <span id="sp-left">—</span></div>
       </div>
-      <div class="rb-tablebox">
-        <table class="rb-table">
-          <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th class="rb-hide-narrow">Account</th><th class="rb-num">Amount</th></tr></thead>
-          <tbody id="tx"></tbody>
-        </table>
+      <div class="rb-stack" id="sp-bar" aria-hidden="true"></div>
+      <div class="rb-spent-cols" id="sp-cols"></div>
+    </section>
+
+    <section class="rb-tiles">
+      <div class="rb-card"><div class="rb-label">Day-to-day left this month</div><div class="rb-big" id="t-remaining">—</div><div class="rb-sub">of <span id="t-budget">—</span> across Day-to-Day</div></div>
+      <div class="rb-card"><div class="rb-label">Days left in month</div><div class="rb-big" id="t-days">—</div><div class="rb-sub">Data through <span id="t-asof">—</span></div></div>
+      <div class="rb-card"><div class="rb-label">Safe to spend per day</div><div class="rb-big" id="t-perday">—</div><div class="rb-sub">Day-to-day left ÷ days left</div></div>
+      <div class="rb-card rb-tile rb-click" id="tile-unassigned" role="button" tabindex="0" title="Show these transactions">
+        <div class="rb-label">Card spending not in a category</div><div class="rb-big" id="t-unassigned">—</div><div class="rb-sub">Counted against Unassigned · tap to see</div>
       </div>
     </section>
+
     <section class="rb-card">
-      <h2>Bills, giving and savings</h2>
-      <p class="rb-note">Fixed monthly amounts and what has posted so far. Any amount posted counts as paid for the month.</p>
+      <h2>Day-to-day categories</h2>
+      <p class="rb-note">Spent so far vs. monthly budget. Tap a category to see its transactions.</p>
+      <div class="rb-rows" id="rows"></div>
+      <div class="rb-legend"><span class="rb-lg-pace" id="pace-legend">Where spending should be today</span><span class="rb-lg-full">100% of budget</span></div>
+    </section>
+
+    <div class="rb-grid">
+      <section class="rb-card" id="txns">
+        <h2>Transactions</h2>
+        <p class="rb-note">Envelope and all Chase accounts, October 1 to date. Pending items included.</p>
+        <div class="rb-tools">
+          <input type="search" id="search" placeholder="Search merchant or category" aria-label="Search transactions">
+          <button class="rb-chip" id="picked" hidden></button>
+        </div>
+        <div class="rb-tablebox">
+          <table class="rb-table">
+            <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th class="rb-hide-narrow">Account</th><th class="rb-num">Amount</th></tr></thead>
+            <tbody id="tx"></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="rb-card">
+        <h2>Bills, giving and savings</h2>
+        <p class="rb-note">Fixed monthly amounts and what has posted so far. Any amount posted counts as paid for the month.</p>
+        <div class="rb-tablebox">
+          <table class="rb-table">
+            <thead><tr><th>Category</th><th class="rb-num">Budget</th><th class="rb-num">Posted</th><th>Status</th></tr></thead>
+            <tbody id="fx"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+
+    <section class="rb-card">
+      <h2>Sinking funds</h2>
+      <p class="rb-note">Monthly contribution, what came out of each fund in October, and the fund balance as of <span id="sk-asof">—</span>.</p>
       <div class="rb-tablebox">
         <table class="rb-table">
-          <thead><tr><th>Category</th><th class="rb-num">Budget</th><th class="rb-num">Posted</th><th>Status</th></tr></thead>
-          <tbody id="fx"></tbody>
+          <thead><tr><th>Fund</th><th class="rb-num">Added monthly</th><th class="rb-num">Spent in October</th><th class="rb-num">Balance</th></tr></thead>
+          <tbody id="sk"></tbody>
         </table>
       </div>
     </section>
+
+    <section class="rb-card">
+      <h2>Emergency fund and savings</h2>
+      <p class="rb-note">Funded savings buckets as of <span id="s-asof">—</span>. Total <b class="rb-savtot" id="s-total">—</b>.</p>
+      <div class="rb-sav" id="sav"></div>
+    </section>
   </div>
 
-  <section class="rb-card">
-    <h2>Sinking funds</h2>
-    <p class="rb-note">Monthly contribution, what came out of each fund in October, and the fund balance as of <span id="sk-asof">—</span>.</p>
-    <div class="rb-tablebox">
-      <table class="rb-table">
-        <thead><tr><th>Fund</th><th class="rb-num">Added monthly</th><th class="rb-num">Spent in October</th><th class="rb-num">Balance</th></tr></thead>
-        <tbody id="sk"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="rb-card">
-    <h2>Emergency fund and savings</h2>
-    <p class="rb-note">Funded savings buckets as of <span id="s-asof">—</span>. Total <b class="rb-savtot" id="s-total">—</b>.</p>
-    <div class="rb-sav" id="sav"></div>
-  </section>
+  <!-- TAB 2: WHOLE BUDGET -->
+  <div class="rb-pane" id="pane-whole-budget">
+    <section class="rb-card">
+      <h2>The whole budget on one page</h2>
+      <p class="rb-note">Every dollar we bring home in a month is given a place. What we have budgeted, plus what is still unassigned, adds up to exactly our income.</p>
+      <div class="rb-sec" style="margin-top: 0">What we bring home</div>
+      <div id="income-rows"></div>
+      <div class="rb-sec">Where it goes</div>
+      <div class="rb-stack" id="plan-bar" aria-hidden="true"></div>
+      <div id="plan-rows"></div>
+      <div class="rb-plan-total"><span>Income <span id="plan-income">—</span></span><span>Budgeted <span id="plan-total">—</span></span><span>Unassigned <span id="plan-left">—</span></span></div>
+    </section>
+  </div>
 </div>
 
 <script>
@@ -244,13 +262,13 @@ const daily = [
     const bud = b ? num(b.monthly_budget) : 0;
     const spent = spentIn(catName);
     const status = spent > bud ? 'Over' : spent > bud * pace * 1.1 ? 'Ahead of pace' : 'On track';
-    return { category: catName, budget: bud, spent, remaining: r2(bud - spent), pct_used: bud ? spent / bud : 0, status };
+    return { category: catName, budget: bud, spent, remaining: r2(bud - spent), pct_used: bud ? spent / bud : 0, status, note: '' };
   }),
   (() => {
     const otherCats = originalDaily.map(b => b.category).filter(c => !DAILY_TARGETS.includes(c));
     const spent = sum(TXNS.filter(t => otherCats.includes(t.category)), t => num(t.amount));
     const status = spent > otherBudget ? 'Over' : spent > otherBudget * pace * 1.1 ? 'Ahead of pace' : 'On track';
-    return { category: 'Other', budget: otherBudget, spent, remaining: r2(otherBudget - spent), pct_used: otherBudget ? spent / otherBudget : 0, status };
+    return { category: 'Other', budget: otherBudget, spent, remaining: r2(otherBudget - spent), pct_used: otherBudget ? spent / otherBudget : 0, status, note: 'Includes Misc., Amazon, Christine/Jordan Fun, Date' };
   })()
 ];
 
@@ -333,17 +351,23 @@ $('s-total').textContent = money(savTotal);
 let cat = null;
 const search = $('search'), picked = $('picked');
 function pick(c) {
-  if (c === 'Other') {
-    cat = cat === c ? null : c;
-  } else {
-    cat = cat === c ? null : c;
-  }
+  cat = cat === c ? null : c;
   drawRows(); drawTx(); $('txns').scrollIntoView({ block: 'nearest' });
 }
 $('tile-unassigned').addEventListener('click', () => pick('Unassigned'));
 $('tile-unassigned').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick('Unassigned'); } });
 picked.addEventListener('click', () => { cat = null; drawRows(); drawTx(); });
 search.addEventListener('input', drawTx);
+
+// Tab switching logic
+document.querySelectorAll('.rb-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.rb-tab').forEach(t => t.classList.remove('rb-tab-active'));
+    document.querySelectorAll('.rb-pane').forEach(p => p.classList.remove('rb-pane-active'));
+    tab.classList.add('rb-tab-active');
+    $(tab.dataset.target).classList.add('rb-pane-active');
+  });
+});
 
 function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 
@@ -357,7 +381,7 @@ function drawRows() {
     const name = el('div');
     name.append(el('div', 'rb-name', r.category));
     name.append(el('div', 'rb-stat ' + (r.status === 'Over' ? 'rb-bad' : r.status === 'Ahead of pace' ? 'rb-warn' : 'rb-ok'),
-      r.status + (r.pct_used > cap ? ` · ${pct(r.pct_used)} used` : '')));
+      r.status + (r.pct_used > cap ? ` · ${pct(r.pct_used)} used` : '') + (r.note ? ` · ${r.note}` : '')));
     const track = el('div', 'rb-track');
     const fill = el('div', 'rb-fill');
     fill.style.width = (Math.min(r.pct_used, cap) / cap * 100) + '%';
