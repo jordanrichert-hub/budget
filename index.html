@@ -1,0 +1,224 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Richert Family Budget</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@400;500&family=Public+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one column of summary cards, then envelope bars, then transactions beside bills, savings last. */
+:root {
+  --bg: #f3f5f2; --panel: #ffffff; --fg: #1c2421; --muted: #5d6b65; --line: #dde3df;
+  --track: #e7ece8; --axis: #8a9791; --pace: #2b3a34;
+  --ok: #1f7a46; --warn: #a15c07; --bad: #b3261e;
+  --bar-ok: #9ad8a6; --bar-bad: #f4a3a3; --accent: #2f6f73;
+  --c1: #2f6f73; --c2: #3b6fb0; --c3: #c28a2c; --c4: #8a5fa8; --c5: #4f9a5b; --c6: #9aa5a0;
+  --hl-bg: #e0efec; --hl-line: #6aa8a2;
+  --serif: "Newsreader", Georgia, serif; --sans: "Public Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121715; --panel: #1b2220; --fg: #e6ece8; --muted: #9aa8a1; --line: #2c3632;
+  --track: #2a3330; --axis: #6f7d77; --pace: #d4ddd8;
+  --ok: #6fd391; --warn: #e5a54b; --bad: #ff8a80;
+  --bar-ok: #3f8f56; --bar-bad: #b5524d; --accent: #6bb8bc;
+  --c1: #6bb8bc; --c2: #7aa7e0; --c3: #e0b25a; --c4: #b693d1; --c5: #78c488; --c6: #6f7d77;
+  --hl-bg: #1c3431; --hl-line: #3f7f7a; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #121715; --panel: #1b2220; --fg: #e6ece8; --muted: #9aa8a1; --line: #2c3632;
+  --track: #2a3330; --axis: #6f7d77; --pace: #d4ddd8;
+  --ok: #6fd391; --warn: #e5a54b; --bad: #ff8a80;
+  --bar-ok: #3f8f56; --bar-bad: #b5524d; --accent: #6bb8bc;
+  --c1: #6bb8bc; --c2: #7aa7e0; --c3: #e0b25a; --c4: #b693d1; --c5: #78c488; --c6: #6f7d77;
+  --hl-bg: #1c3431; --hl-line: #3f7f7a; color-scheme: dark; }
+body { background: var(--bg); color: var(--fg); font-family: var(--sans); font-size: 14px; line-height: 1.45;
+  padding-block: 24px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.rb { display: flex; flex-direction: column; gap: 20px; max-width: 72rem; margin-inline: auto; }
+.rb-head h1 { font-family: var(--serif); font-weight: 400; font-size: 30px; line-height: 1.15; margin: 0; text-wrap: balance; }
+.rb-head p { margin: 6px 0 0; color: var(--muted); font-size: 15px; max-width: 60ch; }
+.rb-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 20px; min-width: 0; }
+.rb-card h2 { font-size: 16px; font-weight: 600; margin: 0; }
+.rb-note { color: var(--muted); font-size: 12.5px; margin: 4px 0 16px; }
+.rb-top { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 12px; }
+.rb-proj { display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; justify-content: space-between; }
+.rb-label { color: var(--muted); font-size: 12.5px; }
+.rb-big { font-family: var(--serif); font-weight: 400; font-size: 28px; font-variant-numeric: tabular-nums; margin-top: 4px; line-height: 1.15; }
+.rb-proj .rb-big { font-size: 42px; }
+.rb-sub { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+.rb-proj-side { max-width: 26rem; font-size: 14px; }
+.rb-proj-side b { font-weight: 600; font-variant-numeric: tabular-nums; }
+.rb-split { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.rb-split > div { display: flex; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--line); padding-bottom: 4px; }
+.rb-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 12px; }
+.rb-tile.rb-click { cursor: pointer; }
+.rb-tile.rb-click:hover, .rb-tile.rb-click:focus-visible { border-color: var(--accent); outline: none; }
+.rb-bad { color: var(--bad); } .rb-warn { color: var(--warn); } .rb-ok { color: var(--ok); }
+.rb-rows { display: flex; flex-direction: column; gap: 8px; }
+.rb-row { display: grid; grid-template-columns: minmax(7rem, 11rem) 1fr minmax(8rem, 11rem); gap: 12px; align-items: center;
+  cursor: pointer; border-radius: 6px; padding: 8px; background: none; border: 0; color: inherit; font: inherit; text-align: left; width: 100%; }
+.rb-row:hover, .rb-row.rb-sel { background: var(--bg); }
+.rb-row:focus-visible { outline: 2px solid var(--accent); }
+.rb-name { font-size: 14px; }
+.rb-stat { font-size: 12.5px; }
+.rb-track { position: relative; height: 14px; background: var(--track); border-radius: 7px; }
+.rb-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; }
+.rb-pace { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 2px dashed var(--pace); }
+.rb-full { position: absolute; top: -4px; bottom: -4px; width: 0; border-left: 1px solid var(--axis); }
+.rb-amt { text-align: right; font-variant-numeric: tabular-nums; font-size: 12.5px; }
+.rb-amt b { font-size: 14px; font-weight: 600; }
+.rb-legend { display: flex; gap: 16px; flex-wrap: wrap; color: var(--muted); font-size: 12.5px; margin-top: 16px; }
+.rb-legend span::before { content: ""; display: inline-block; width: 14px; margin-right: 6px; vertical-align: middle; }
+.rb-lg-pace::before { border-top: 2px dashed var(--pace); }
+.rb-lg-full::before { border-top: 1px solid var(--axis); }
+@media (max-width: 34rem) { .rb-note-mid { display: none; } }
+@media (max-width: 34rem) { .rb-row { grid-template-columns: 1fr auto; } .rb-row .rb-track { grid-column: 1 / -1; grid-row: 2; } .rb-hide-narrow { display: none; } .rb-proj .rb-big { font-size: 36px; } }
+.rb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 24rem), 1fr)); gap: 12px; }
+.rb-tablebox { max-height: 26rem; overflow: auto; }
+.rb-table { width: 100%; border-collapse: collapse; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.rb-table th { position: sticky; top: 0; background: var(--panel); text-align: left; color: var(--muted); font-weight: 500; padding: 6px; border-bottom: 1px solid var(--line); }
+.rb-table td { padding: 6px; border-bottom: 1px solid var(--line); }
+.rb-table .rb-num { text-align: right; }
+.rb-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+.rb-tools input { font: inherit; font-size: 12.5px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); min-width: 12rem; max-width: 100%; }
+.rb-chip { font: inherit; font-size: 12.5px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--bg); color: var(--fg); cursor: pointer; }
+.rb-sav { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: 12px; }
+.rb-sav-item { border: 1px solid var(--line); border-radius: 6px; padding: 14px; background: var(--bg); }
+.rb-sav-item .rb-big { margin: 4px 0 8px; }
+.rb-sav-item .rb-track { height: 8px; }
+.rb-sav-item .rb-fill { background: var(--accent); }
+.rb-savtot { font-weight: 600; }
+.rb-stack { display: flex; height: 18px; border-radius: 9px; overflow: hidden; gap: 2px; margin-bottom: 8px; }
+.rb-stack > div { min-width: 3px; }
+.rb-sec { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin: 16px 0 4px; }
+.rb-inc-row { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 8px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.rb-inc-row .rb-inc-amt { font-weight: 600; }
+.rb-inc-total { font-weight: 600; border-bottom: 0; }
+.rb-hl { background: var(--hl-bg); border: 2px solid var(--hl-line); }
+.rb-hl .rb-stack { height: 22px; }
+.rb-spent-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 8px 24px; margin-bottom: 14px; }
+.rb-spent-head .rb-big { font-size: 42px; }
+.rb-spent-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: 16px; margin-top: 14px; }
+.rb-spent-col .rb-big { font-size: 30px; margin: 2px 0; }
+.rb-spent-col .rb-sw { display: inline-block; margin: 0 8px 0 0; vertical-align: -2px; }
+.rb-plan-row { display: grid; grid-template-columns: 14px 1fr auto 3.5rem; gap: 12px; align-items: start; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.rb-sw { width: 14px; height: 14px; border-radius: 3px; margin-top: 3px; }
+.rb-plan-row .rb-name { font-weight: 500; }
+.rb-plan-amt { font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+.rb-plan-pct { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rb-plan-total { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 24px; padding-top: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+</style>
+
+<div class="rb">
+  <header class="rb-head">
+    <h1>Richert family budget — October 2026</h1>
+    <p id="takeaway">—</p>
+  </header>
+
+  <section class="rb-card">
+    <h2>The whole budget on one page</h2>
+    <p class="rb-note">Every dollar we bring home in a month is given a place. What we have budgeted, plus what is still unassigned, adds up to exactly our income.</p>
+    <div class="rb-sec" style="margin-top: 0">What we bring home</div>
+    <div id="income-rows"></div>
+    <div class="rb-sec">Where it goes</div>
+    <div class="rb-stack" id="plan-bar" aria-hidden="true"></div>
+    <div id="plan-rows"></div>
+    <div class="rb-plan-total"><span>Income <span id="plan-income">—</span></span><span>Budgeted <span id="plan-total">—</span></span><span>Unassigned <span id="plan-left">—</span></span></div>
+  </section>
+
+  <div class="rb-top">
+    <section class="rb-card rb-proj rb-hl">
+      <div>
+        <div class="rb-label">Projected savings for October</div>
+        <div class="rb-big" id="p-projected">—</div>
+        <div class="rb-sub">Plan was <span id="p-planned">—</span> · <span id="p-diff">—</span></div>
+      </div>
+      <div class="rb-proj-side">
+        <div>Plus <b id="p-contrib">—</b> going to Roth IRA, HSA, 529s and Protected Savings</div>
+        <div class="rb-sub">Income minus every budget line, counting any line already over budget at what's been spent and any bill that has posted at the amount posted, minus card spending outside the budget so far.</div>
+      </div>
+    </section>
+    <section class="rb-card rb-proj rb-hl">
+      <div>
+        <div class="rb-label">Left after spending and funds set aside</div>
+        <div class="rb-big" id="m-net">—</div>
+        <div class="rb-sub"><span id="m-income">—</span> income − <span id="m-exp">—</span> spent or set aside</div>
+      </div>
+      <div class="rb-proj-side">
+        <div class="rb-sub">Income minus everything spent or set aside so far. Unspent day-to-day money is not held back, and bills count at the amount posted, or their budget if not posted yet. The breakdown is just below.</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="rb-card rb-hl" id="spent-panel">
+    <div class="rb-spent-head">
+      <div><div class="rb-label">Spent or set aside this month</div><div class="rb-big" id="sp-total">—</div></div>
+      <div class="rb-sub">out of <span id="sp-income">—</span> income, leaving <span id="sp-left">—</span></div>
+    </div>
+    <div class="rb-stack" id="sp-bar" aria-hidden="true"></div>
+    <div class="rb-spent-cols" id="sp-cols"></div>
+  </section>
+
+  <section class="rb-tiles">
+    <div class="rb-card"><div class="rb-label">Day-to-day left this month</div><div class="rb-big" id="t-remaining">—</div><div class="rb-sub">of <span id="t-budget">—</span> across 8 categories</div></div>
+    <div class="rb-card"><div class="rb-label">Days left in month</div><div class="rb-big" id="t-days">—</div><div class="rb-sub">Data through <span id="t-asof">—</span></div></div>
+    <div class="rb-card"><div class="rb-label">Safe to spend per day</div><div class="rb-big" id="t-perday">—</div><div class="rb-sub">Day-to-day left ÷ days left</div></div>
+    <div class="rb-card rb-tile rb-click" id="tile-unassigned" role="button" tabindex="0" title="Show these transactions">
+      <div class="rb-label">Card spending not in a category</div><div class="rb-big" id="t-unassigned">—</div><div class="rb-sub">Counted against Unassigned · tap to see</div>
+    </div>
+  </section>
+
+  <section class="rb-card">
+    <h2>Day-to-day categories</h2>
+    <p class="rb-note">Spent so far vs. monthly budget. Tap a category to see its transactions.</p>
+    <div class="rb-rows" id="rows"></div>
+    <div class="rb-legend"><span class="rb-lg-pace" id="pace-legend">Where spending should be today</span><span class="rb-lg-full">100% of budget</span></div>
+  </section>
+
+  <div class="rb-grid">
+    <section class="rb-card" id="txns">
+      <h2>Transactions</h2>
+      <p class="rb-note">Envelope and all Chase accounts, October 1 to date. Pending items included.</p>
+      <div class="rb-tools">
+        <input type="search" id="search" placeholder="Search merchant or category" aria-label="Search transactions">
+        <button class="rb-chip" id="picked" hidden></button>
+      </div>
+      <div class="rb-tablebox">
+        <table class="rb-table">
+          <thead><tr><th>Date</th><th>Merchant</th><th>Category</th><th class="rb-hide-narrow">Account</th><th class="rb-num">Amount</th></tr></thead>
+          <tbody id="tx"></tbody>
+        </table>
+      </div>
+    </section>
+    <section class="rb-card">
+      <h2>Bills, giving and savings</h2>
+      <p class="rb-note">Fixed monthly amounts and what has posted so far. Any amount posted counts as paid for the month.</p>
+      <div class="rb-tablebox">
+        <table class="rb-table">
+          <thead><tr><th>Category</th><th class="rb-num">Budget</th><th class="rb-num">Posted</th><th>Status</th></tr></thead>
+          <tbody id="fx"></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="rb-card">
+    <h2>Sinking funds</h2>
+    <p class="rb-note">Monthly contribution, what came out of each fund in October, and the fund balance as of <span id="sk-asof">—</span>.</p>
+    <div class="rb-tablebox">
+      <table class="rb-table">
+        <thead><tr><th>Fund</th><th class="rb-num">Added monthly</th><th class="rb-num">Spent in October</th><th class="rb-num">Balance</th></tr></thead>
+        <tbody id="sk"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="rb-card">
+    <h2>Emergency fund and savings</h2>
+    <p class="rb-note">Funded savings buckets as of <span id="s-asof">—</span>. Total <b class="rb-savtot" id="s-total">—</b>.</p>
+    <div class="rb-sav" id="sav"></div>
+  </section>
+</div>
+
+<script>
+const BUDGET = [{"group": "Income", "section": "Income", "category": "Jordan take-home (2 paychecks less 401k)", "monthly_budget": "9004.54"}, {"group": "Income", "section": "Income", "category": "Christine take-home (2 paychecks)", "monthly_budget": "1400"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Groceries", "monthly_budget": "700"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Eating Out", "monthly_budget": "300"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Misc.", "monthly_budget": "300"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Amazon", "monthly_budget": "100"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Gas", "monthly_budget": "175"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Christine Fun Money", "monthly_budget": "50"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Jordan Fun Money", "monthly_budget": "30"}, {"group": "Daily", "section": "Day-to-Day Spending (Envelope)", "category": "Date Money", "monthly_budget": "75"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Ameren", "monthly_budget": "285"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Water", "monthly_budget": "85"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Trash", "monthly_budget": "29"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Sewer", "monthly_budget": "25"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Ring", "monthly_budget": "5"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "i3 Broadband", "monthly_budget": "53.99"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Prime Subscription", "monthly_budget": "14.99"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Walmart+", "monthly_budget": "13"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Gym/Peloton", "monthly_budget": "59"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Cell Phone", "monthly_budget": "66"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "State Farm", "monthly_budget": "175"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Health Insurance Premium", "monthly_budget": "306"}, {"group": "Fixed", "section": "Bills (Envelope)", "category": "Preschool", "monthly_budget": "311.25"}, {"group": "Fixed", "section": "Giving", "category": "Tithe", "monthly_budget": "689"}, {"group": "Fixed", "section": "Giving", "category": "Pioneers Missions", "monthly_budget": "50"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Oil Change", "monthly_budget": "40"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Car Registration", "monthly_budget": "30"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Vacation", "monthly_budget": "100"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Christmas", "monthly_budget": "50"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "May", "monthly_budget": "50"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Haircut", "monthly_budget": "30"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Car", "monthly_budget": "130"}, {"group": "Fixed", "section": "Sinking Funds (Envelope)", "category": "Protected Savings", "monthly_budget": "200"}, {"group": "Fixed", "section": "Outside Envelope", "category": "Mortgage", "monthly_budget": "1423"}, {"group": "Fixed", "section": "Outside Envelope", "category": "Roth IRA", "monthly_budget": "625"}, {"group": "Fixed", "section": "Outside Envelope", "category": "529s", "monthly_budget": "200"}, {"group": "Fixed", "section": "Outside Envelope", "category": "HSA", "monthly_budget": "200"}, {"group": "Fixed", "section": "Outside Envelope", "category": "Life insurance / LTD", "monthly_budget": "87.52"}, {"group": "Fixed", "section": "Outside Envelope", "category": "Amazon Music", "monthly_budget": "5.34"}, {"group": "Unassigned", "section": "Unassigned", "category": "Unassigned", "monthly_budget": "3336.45"}];
+const TXNS = [{"id": "t001", "date": "2026-10-01", "status": "Posted", "account": "Envelope", "merchant": "Culver's", "category": "Eating Out", "amount": "27.56"}, {"id": "t002", "date": "2026-10-01", "status": "Posted", "account": "Envelope", "merchant": "Circle K", "category": "Gas", "amount": "80.86"}, {"id": "t003", "date": "2026-10-01", "status": "Posted", "account": "Envelope", "merchant": "Apple Cash", "category": "Cell Phone", "amount": "66"}, {"id": "t004", "date": "2026-10-02", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Groceries", "amount": "4.26"}, {"id": "t005", "date": "2026-10-02", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Groceries", "amount": "72.54"}, {"id": "t006", "date": "2026-10-02", "status": "Posted", "account": "Envelope", "merchant": "Aldi (credit, no envelope)", "category": "Groceries", "amount": "-10.89"}, {"id": "t007", "date": "2026-10-02", "status": "Posted", "account": "Envelope", "merchant": "Dave's Hot Chicken", "category": "Date Money", "amount": "13.93"}, {"id": "t008", "date": "2026-10-04", "status": "Posted", "account": "Envelope", "merchant": "Haymakers", "category": "Gas", "amount": "38.56"}, {"id": "t009", "date": "2026-10-04", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "15.68"}, {"id": "t010", "date": "2026-10-04", "status": "Posted", "account": "Envelope", "merchant": "Aldi", "category": "Groceries", "amount": "129.12"}, {"id": "t011", "date": "2026-10-05", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "29.49"}, {"id": "t012", "date": "2026-10-06", "status": "Posted", "account": "Envelope", "merchant": "Jimmy John's", "category": "Eating Out", "amount": "10.72"}, {"id": "t013", "date": "2026-10-06", "status": "Posted", "account": "Envelope", "merchant": "Starbucks", "category": "Eating Out", "amount": "10"}, {"id": "t014", "date": "2026-10-07", "status": "Posted", "account": "Envelope", "merchant": "7 Brew Coffee", "category": "Date Money", "amount": "8.5"}, {"id": "t015", "date": "2026-10-07", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Groceries", "amount": "53.98"}, {"id": "t016", "date": "2026-10-08", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Groceries", "amount": "1.5"}, {"id": "t017", "date": "2026-10-08", "status": "Posted", "account": "Envelope", "merchant": "Starbucks", "category": "Christine Fun Money", "amount": "10"}, {"id": "t018", "date": "2026-10-08", "status": "Posted", "account": "Envelope", "merchant": "McDonald's", "category": "Eating Out", "amount": "28.21"}, {"id": "t019", "date": "2026-10-09", "status": "Posted", "account": "Envelope", "merchant": "Los Ranchos", "category": "Vacation", "amount": "64.36"}, {"id": "t020", "date": "2026-10-09", "status": "Posted", "account": "Envelope", "merchant": "Chick-fil-A", "category": "Vacation", "amount": "26.95"}, {"id": "t021", "date": "2026-10-09", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Groceries", "amount": "118.76"}, {"id": "t022", "date": "2026-10-10", "status": "Posted", "account": "Envelope", "merchant": "Venezia Pizza", "category": "Vacation", "amount": "37.63"}, {"id": "t023", "date": "2026-10-10", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Groceries", "amount": "50.32"}, {"id": "t024", "date": "2026-10-10", "status": "Posted", "account": "Envelope", "merchant": "Quince", "category": "Misc.", "amount": "80.08"}, {"id": "t025", "date": "2026-10-10", "status": "Posted", "account": "Envelope", "merchant": "We Coffee Ministries", "category": "Vacation", "amount": "9.01"}, {"id": "t026", "date": "2026-10-10", "status": "Posted", "account": "Envelope", "merchant": "ReCharge South Haven", "category": "Vacation", "amount": "17.21"}, {"id": "t027", "date": "2026-10-10", "status": "Posted", "account": "Envelope", "merchant": "Dussel's Farm Market", "category": "Vacation", "amount": "15"}, {"id": "t028", "date": "2026-10-11", "status": "Posted", "account": "Envelope", "merchant": "South Pier Creamery", "category": "Vacation", "amount": "27.44"}, {"id": "t029", "date": "2026-10-11", "status": "Posted", "account": "Envelope", "merchant": "Clementine's", "category": "Vacation", "amount": "81.26"}, {"id": "t030", "date": "2026-10-11", "status": "Posted", "account": "Envelope", "merchant": "Bundes Good Eats", "category": "Vacation", "amount": "6.63"}, {"id": "t031", "date": "2026-10-11", "status": "Posted", "account": "Envelope", "merchant": "Bundes Good Eats", "category": "Vacation", "amount": "19.28"}, {"id": "t032", "date": "2026-10-12", "status": "Posted", "account": "Envelope", "merchant": "McDonald's", "category": "Eating Out", "amount": "2.12"}, {"id": "t033", "date": "2026-10-12", "status": "Posted", "account": "Envelope", "merchant": "Jersey Mike's Subs", "category": "Vacation", "amount": "41.82"}, {"id": "t034", "date": "2026-10-13", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "12.24"}, {"id": "t035", "date": "2026-10-13", "status": "Posted", "account": "Envelope", "merchant": "Haymakers", "category": "Gas", "amount": "74.6"}, {"id": "t036", "date": "2026-10-13", "status": "Posted", "account": "Envelope", "merchant": "Aldi", "category": "Groceries", "amount": "137.85"}, {"id": "t037", "date": "2026-10-15", "status": "Posted", "account": "Envelope", "merchant": "U.S. Post Office", "category": "Jordan Fun Money", "amount": "13.9"}, {"id": "t038", "date": "2026-10-16", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Misc.", "amount": "65.42"}, {"id": "t039", "date": "2026-10-16", "status": "Posted", "account": "Envelope", "merchant": "Ring", "category": "Ring", "amount": "4.99"}, {"id": "t040", "date": "2026-10-16", "status": "Posted", "account": "Envelope", "merchant": "Jimmy John's", "category": "Eating Out", "amount": "10.72"}, {"id": "t041", "date": "2026-10-16", "status": "Posted", "account": "Envelope", "merchant": "McDonald's", "category": "Eating Out", "amount": "1.73"}, {"id": "t042", "date": "2026-10-16", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Misc.", "amount": "5.88"}, {"id": "t043", "date": "2026-10-17", "status": "Posted", "account": "Envelope", "merchant": "Culver's", "category": "Eating Out", "amount": "9.92"}, {"id": "t044", "date": "2026-10-17", "status": "Posted", "account": "Envelope", "merchant": "Chick-fil-A", "category": "Eating Out", "amount": "22.74"}, {"id": "t045", "date": "2026-10-18", "status": "Posted", "account": "Envelope", "merchant": "Watson's Shack & Rail", "category": "Eating Out", "amount": "17.84"}, {"id": "t046", "date": "2026-10-18", "status": "Posted", "account": "Envelope", "merchant": "Target", "category": "Misc.", "amount": "12.56"}, {"id": "t047", "date": "2026-10-18", "status": "Posted", "account": "Envelope", "merchant": "Target", "category": "Misc.", "amount": "68.49"}, {"id": "t048", "date": "2026-10-18", "status": "Posted", "account": "Envelope", "merchant": "Target", "category": "Misc.", "amount": "47.84"}, {"id": "t049", "date": "2026-10-18", "status": "Posted", "account": "Envelope", "merchant": "Aldi", "category": "Groceries", "amount": "130.78"}, {"id": "t050", "date": "2026-10-19", "status": "Posted", "account": "Envelope", "merchant": "Target", "category": "Misc.", "amount": "102.83"}, {"id": "t051", "date": "2026-10-19", "status": "Posted", "account": "Envelope", "merchant": "Aldi", "category": "Groceries", "amount": "3.52"}, {"id": "t052", "date": "2026-10-19", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "33.77"}, {"id": "t053", "date": "2026-10-19", "status": "Posted", "account": "Envelope", "merchant": "i3 Broadband", "category": "i3 Broadband", "amount": "53.99"}, {"id": "t054", "date": "2026-10-20", "status": "Posted", "account": "Envelope", "merchant": "Target", "category": "Misc.", "amount": "38.24"}, {"id": "t055", "date": "2026-10-20", "status": "Posted", "account": "Envelope", "merchant": "7 Brew Coffee", "category": "Eating Out", "amount": "11.74"}, {"id": "t056", "date": "2026-10-21", "status": "Posted", "account": "Envelope", "merchant": "Target", "category": "Misc.", "amount": "38.68"}, {"id": "t057", "date": "2026-10-21", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "8.93"}, {"id": "t058", "date": "2026-10-21", "status": "Posted", "account": "Envelope", "merchant": "Walmart", "category": "Misc.", "amount": "1.5"}, {"id": "t059", "date": "2026-10-22", "status": "Pending", "account": "Envelope", "merchant": "Ameren Illinois", "category": "Ameren", "amount": "248"}, {"id": "t060", "date": "2026-10-22", "status": "Pending", "account": "Envelope", "merchant": "Walmart", "category": "Misc.", "amount": "68.27"}, {"id": "t061", "date": "2026-10-01", "status": "Posted", "account": "Chase Checking", "merchant": "Morton Community (mortgage)", "category": "Mortgage", "amount": "1423"}, {"id": "t062", "date": "2026-10-01", "status": "Posted", "account": "Chase Checking", "merchant": "Fidelity (HSA)", "category": "HSA", "amount": "200"}, {"id": "t063", "date": "2026-10-01", "status": "Posted", "account": "Chase Checking", "merchant": "ILD529 contribution", "category": "529s", "amount": "50"}, {"id": "t064", "date": "2026-10-05", "status": "Posted", "account": "Chase Checking", "merchant": "ILD529 contribution", "category": "529s", "amount": "50"}, {"id": "t065", "date": "2026-10-05", "status": "Posted", "account": "Chase Checking", "merchant": "ILD529 contribution", "category": "529s", "amount": "50"}, {"id": "t066", "date": "2026-10-15", "status": "Posted", "account": "Chase Checking", "merchant": "ILD529 contribution", "category": "529s", "amount": "50"}, {"id": "t067", "date": "2026-10-05", "status": "Posted", "account": "Chase Checking", "merchant": "Zelle to Matthew (Amazon Music)", "category": "Amazon Music", "amount": "5.34"}, {"id": "t068", "date": "2026-10-06", "status": "Posted", "account": "Chase Checking", "merchant": "American General life ins.", "category": "Life insurance / LTD", "amount": "19.13"}, {"id": "t069", "date": "2026-10-15", "status": "Posted", "account": "Chase Checking", "merchant": "MassMutual (LTD)", "category": "Life insurance / LTD", "amount": "19.04"}, {"id": "t070", "date": "2026-10-22", "status": "Pending", "account": "Chase Checking", "merchant": "American General life ins.", "category": "Life insurance / LTD", "amount": "19.04"}, {"id": "t071", "date": "2026-10-22", "status": "Pending", "account": "Chase Checking", "merchant": "American General life ins.", "category": "Life insurance / LTD", "amount": "30.31"}, {"id": "t072", "date": "2026-10-15", "status": "Posted", "account": "Chase Checking", "merchant": "Schwab (Roth IRA)", "category": "Roth IRA", "amount": "625"}, {"id": "t073", "date": "2026-10-19", "status": "Posted", "account": "Chase Card", "merchant": "Lowe's (return)", "category": "Unassigned", "amount": "-137.68"}, {"id": "t074", "date": "2026-10-18", "status": "Posted", "account": "Chase Card", "merchant": "Walgreens", "category": "Unassigned", "amount": "9.28"}, {"id": "t075", "date": "2026-10-18", "status": "Posted", "account": "Chase Card", "merchant": "Walgreens", "category": "Unassigned", "amount": "31.09"}, {"id": "t076", "date": "2026-10-16", "status": "Posted", "account": "Chase Card", "merchant": "State Farm", "category": "State Farm", "amount": "140.98"}, {"id": "t077", "date": "2026-10-16", "status": "Posted", "account": "Chase Card", "merchant": "Amtrak", "category": "Unassigned", "amount": "136"}, {"id": "t078", "date": "2026-10-16", "status": "Posted", "account": "Chase Card", "merchant": "Culver's", "category": "Unassigned", "amount": "7.7"}, {"id": "t079", "date": "2026-10-17", "status": "Posted", "account": "Chase Card", "merchant": "Walmart Supercenter", "category": "Unassigned", "amount": "62.76"}, {"id": "t080", "date": "2026-10-14", "status": "Posted", "account": "Chase Card", "merchant": "Target (return)", "category": "Unassigned", "amount": "-20.74"}, {"id": "t081", "date": "2026-10-16", "status": "Posted", "account": "Chase Card", "merchant": "Salon105", "category": "Unassigned", "amount": "275"}, {"id": "t082", "date": "2026-10-15", "status": "Posted", "account": "Chase Card", "merchant": "Whisk Coffee and Wine", "category": "Unassigned", "amount": "7.08"}, {"id": "t083", "date": "2026-10-15", "status": "Posted", "account": "Chase Card", "merchant": "SQ Admission", "category": "Unassigned", "amount": "15"}, {"id": "t084", "date": "2026-10-14", "status": "Posted", "account": "Chase Card", "merchant": "Walmart (return)", "category": "Unassigned", "amount": "-32.63"}, {"id": "t085", "date": "2026-10-14", "status": "Posted", "account": "Chase Card", "merchant": "Champaign County YMCA", "category": "Gym/Peloton", "amount": "59"}, {"id": "t086", "date": "2026-10-13", "status": "Posted", "account": "Chase Card", "merchant": "Walmart Supercenter", "category": "Unassigned", "amount": "32.63"}, {"id": "t087", "date": "2026-10-13", "status": "Posted", "account": "Chase Card", "merchant": "American Water", "category": "Water", "amount": "54.55"}, {"id": "t088", "date": "2026-10-13", "status": "Posted", "account": "Chase Card", "merchant": "Target", "category": "Unassigned", "amount": "54.04"}, {"id": "t089", "date": "2026-10-13", "status": "Posted", "account": "Chase Card", "merchant": "Target", "category": "Unassigned", "amount": "42.61"}, {"id": "t090", "date": "2026-10-12", "status": "Posted", "account": "Chase Card", "merchant": "Junebugs", "category": "Unassigned", "amount": "20.09"}, {"id": "t091", "date": "2026-10-09", "status": "Posted", "account": "Chase Card", "merchant": "Shell", "category": "Unassigned", "amount": "43.36"}, {"id": "t092", "date": "2026-10-08", "status": "Posted", "account": "Chase Card", "merchant": "Apple.com", "category": "Unassigned", "amount": "9.99"}, {"id": "t093", "date": "2026-10-05", "status": "Posted", "account": "Chase Card", "merchant": "South Side PTA", "category": "Unassigned", "amount": "100"}, {"id": "t094", "date": "2026-10-04", "status": "Posted", "account": "Chase Card", "merchant": "Target", "category": "Unassigned", "amount": "229.41"}, {"id": "t095", "date": "2026-10-02", "status": "Posted", "account": "Chase Card", "merchant": "Target", "category": "Unassigned", "amount": "61.92"}, {"id": "t096", "date": "2026-10-02", "status": "Posted", "account": "Chase Card", "merchant": "Central Art Mart", "category": "Unassigned", "amount": "13"}, {"id": "t097", "date": "2026-10-02", "status": "Posted", "account": "Chase Card", "merchant": "Walmart.com", "category": "Unassigned", "amount": "39.22"}, {"id": "t098", "date": "2026-10-02", "status": "Posted", "account": "Chase Card", "merchant": "Five Below", "category": "Unassigned", "amount": "21.85"}, {"id": "t099", "date": "2026-10-02", "status": "Posted", "account": "Chase Card", "merchant": "Harvest Market", "category": "Unassigned", "amount": "40.68"}, {"id": "t100", "date": "2026-10-01", "status": "Posted", "account": "Chase Card", "merchant": "Bakelab Patisserie", "category": "Unassigned", "amount": "13.62"}, {"id": "t101", "date": "2026-10-01", "status": "Posted", "account": "Chase Card", "merchant": "Ilia Beauty", "category": "Unassigned", "amount": "110.33"}, {"id": "t102", "date": "2026-10-20", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "16.38"}, {"id": "t103", "date": "2026-10-20", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "305.88"}, {"id": "t104", "date": "2026-10-19", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "37.01"}, {"id": "t105", "date": "2026-10-19", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "26.7"}, {"id": "t106", "date": "2026-10-18", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "12.11"}, {"id": "t107", "date": "2026-10-15", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "25.5"}, {"id": "t108", "date": "2026-10-15", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "32.63"}, {"id": "t109", "date": "2026-10-14", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "18.87"}, {"id": "t110", "date": "2026-10-12", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "72.07"}, {"id": "t111", "date": "2026-10-07", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "28.17"}, {"id": "t112", "date": "2026-10-06", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "72.12"}, {"id": "t113", "date": "2026-10-06", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "71.98"}, {"id": "t114", "date": "2026-10-02", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Prime Video", "category": "Unassigned", "amount": "24.99"}, {"id": "t115", "date": "2026-10-02", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "13.01"}, {"id": "t116", "date": "2026-10-02", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "16.25"}, {"id": "t117", "date": "2026-10-02", "status": "Posted", "account": "Chase Amazon Card", "merchant": "Amazon", "category": "Amazon", "amount": "17.46"}, {"id": "t118", "date": "2026-10-24", "status": "Posted", "account": "Envelope", "merchant": "Chipotle Mexican Grill", "category": "Eating Out", "amount": "12.88"}, {"id": "t119", "date": "2026-10-24", "status": "Posted", "account": "Envelope", "merchant": "Murphy USA", "category": "Gas", "amount": "73.22"}, {"id": "t120", "date": "2026-10-24", "status": "Posted", "account": "Envelope", "merchant": "Target (refund)", "category": "Misc.", "amount": "-11.37"}, {"id": "t121", "date": "2026-10-24", "status": "Posted", "account": "Envelope", "merchant": "Starbucks", "category": "Eating Out", "amount": "10"}, {"id": "t122", "date": "2026-10-25", "status": "Posted", "account": "Envelope", "merchant": "Wingstop", "category": "Eating Out", "amount": "27.58"}, {"id": "t123", "date": "2026-10-26", "status": "Posted", "account": "Envelope", "merchant": "Aldi / Instacart", "category": "Groceries", "amount": "173.29"}, {"id": "t124", "date": "2026-10-26", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "8.93"}, {"id": "t125", "date": "2026-10-26", "status": "Posted", "account": "Envelope", "merchant": "Blue Cross Blue Shield (BillMatrix)", "category": "Health Insurance Premium", "amount": "305.56"}, {"id": "t126", "date": "2026-10-26", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "5.39"}, {"id": "t127", "date": "2026-10-27", "status": "Pending", "account": "Chase Card", "merchant": "Scholastic Book Fairs", "category": "Unassigned", "amount": "49"}, {"id": "t128", "date": "2026-10-27", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market", "category": "Groceries", "amount": "15.78"}, {"id": "t129", "date": "2026-10-27", "status": "Posted", "account": "Envelope", "merchant": "Starbucks", "category": "Eating Out", "amount": "10"}, {"id": "t130", "date": "2026-10-27", "status": "Posted", "account": "Envelope", "merchant": "Harvest Market (Quincy)", "category": "Groceries", "amount": "10.04"}, {"id": "t131", "date": "2026-10-27", "status": "Posted", "account": "Envelope", "merchant": "Aldi / Instacart (return)", "category": "Groceries", "amount": "-10.69"}, {"id": "t132", "date": "2026-10-27", "status": "Pending", "account": "Chase Amazon Card", "merchant": "Amazon (pending credit)", "category": "Amazon", "amount": "-8.73"}, {"id": "t133", "date": "2026-10-27", "status": "Pending", "account": "Chase Amazon Card", "merchant": "Amazon (pending credit)", "category": "Amazon", "amount": "-8.73"}];
+const SAVINGS = [{"fund": "Emergencies", "balance": "40000.00", "as_of": "2026-10-22"}, {"fund": "Investing", "balance": "37094.46", "as_of": "2026-10-22"}, {"fund": "Vehicles", "balance": "5954.23", "as_of": "2026-10-22"}, {"fund": "Vacations", "balance": "2572.71", "as_of": "2026-10-22"}, {"fund": "Tax Payments", "balance": "2000.00", "as_of": "2026-10-22"}];
+
+const num = (v) => Number(v) || 0;
+const r2 = (v) => Math.round(v * 100) / 100;
