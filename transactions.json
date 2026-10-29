@@ -1,0 +1,34 @@
+[
+  {
+    "date": "2026-10-28",
+    "description": "Jordan Richert and Christine Richert | Envelope transfer",
+    "account": "Envelope checking • 3649",
+    "category": "Unassigned",
+    "amount": -200.00,
+    "status": "Posted"
+  },
+  {
+    "date": "2026-10-28",
+    "description": "Walmart",
+    "account": "Envelope checking • 3649",
+    "category": "Misc.",
+    "amount": -28.09,
+    "status": "Posted"
+  },
+  {
+    "date": "2026-10-28",
+    "description": "Target",
+    "account": "Envelope checking • 3649",
+    "category": "Misc.",
+    "amount": -5.38,
+    "status": "Posted"
+  },
+  {
+    "date": "2026-10-28",
+    "description": "Target",
+    "account": "Chase card • 5919",
+    "category": "Unassigned",
+    "amount": -94.90,
+    "status": "Pending"
+  }
+]
