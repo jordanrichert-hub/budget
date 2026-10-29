@@ -1,19 +1,14 @@
-name: Deploy Budget to GitHub Pages
+name: Daily Budget Auto-Update
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
+  schedule:
+    - cron: '0 14 * * *' # Runs daily at 2:00 PM UTC (9:00 AM EST)
+  workflow_dispatch: # Allows you to trigger it manually anytime from the Actions tab
 
 permissions:
   contents: write
   pages: write
   id-token: write
-
-concurrency:
-  group: "pages"
-  cancel-in-progress: true
 
 jobs:
   deploy:
@@ -27,22 +22,19 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT }}
 
-      # --- 1. RUN YOUR SCRIPT/PROCESS HERE ---
-      - name: Run daily transaction update
+      # (Optional placeholder for your update script if you add one later)
+      - name: Run update check
         run: |
-          # Replace this line with the actual command that runs your script
-          node update-script.js 
+          echo "Running daily scheduled check..."
 
-      # --- 2. COMMIT AND PUSH THE NEW DATA BACK TO REPO ---
-      - name: Commit and push updated transaction data
+      - name: Commit and push changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html
+          git add .
           git commit -m "Auto-update daily transaction dashboard [skip ci]" || exit 0
           git push
 
-      # --- 3. EXISTING GITHUB PAGES DEPLOYMENT STEPS ---
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
